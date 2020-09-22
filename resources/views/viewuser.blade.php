@@ -6,6 +6,7 @@
         <td>phong ban</td>
         <td>ACTION</td>
     </tr>
+    
     <?php foreach ($user as $resultItem) {?>
         <tr>
             <td><?= $resultItem->email ?></td>
