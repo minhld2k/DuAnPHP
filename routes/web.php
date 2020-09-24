@@ -149,11 +149,32 @@ Route::get('/manhinhthemmoi',function(){
     // lấy mảng dữ liệu theo cột có key va value để đổ combobox
     $userIdNameAr = DB::table("users")
         ->pluck("name","id"); // value,key
+
+    // Đếm số lượng record
+    $countUser = DB::table("users")->count();
+
+    // Group by và các hàm tính toán sum,avg.max,min
+    $max = DB::table("migrations")->sum("batch");
+
+    // Kiểm tra tồn tại
+    $exists = DB::table("migrations")->where("batch",1)->exists();
+    // Kiểm tra ko tồn tại 
+    $exists = DB::table("migrations")->where("batch",1)->doesntExist();
+    
+    //echo $exists?"tồn tại":"ko tồn tại";exit;
+
+    // query tĩnh
+    $r = DB::select(
+            DB::raw(
+                "select * from donhangs where ngayban = ?"
+            ),["2020-09-24"]
+        );
+    dd($r);
     //Viết màn hình cập nhật user (phân vào chức danh và phòng ban)
 
     dd($userIdNameAr);
-})
-->middleware("authencation");
+});
+//->middleware("authencation");
 //->name("kiemtra");
 
 Route::get('/capnhatuser/{id}',function(Request $request,$id){
@@ -209,6 +230,30 @@ Route::post('/save',function(Request $request){
     return redirect()->route('viewUser');
 
 })->name("save");
+
+Route::get('/viewdonhang',function(){
+    if(isset($_REQUEST['ngay'])){
+        $ngay = $_GET['ngay'];
+        $ngaytn = implode("-",array_reverse(explode("-",$ngay)));
+    }else{
+        $ngay = date("d-m-Y");
+        $ngaytn = date("Y-m-d");
+    }
+
+    $donhang = DB::table("donhangs")->where("ngayban",$ngaytn)->get(); 
+    $tong = DB::table("donhangs")->where("ngayban",$ngaytn)->sum("thanhtien"); 
+    $count = DB::table("donhangs")->where("ngayban",$ngaytn)->count();
+    //$ngay = $_GET['ngay'];  
+    return view("viewdonhang",
+        compact([
+            "donhang"
+            ,"ngay"
+            ,"tong"
+            ,"count"
+        ])
+    );
+})->name("viewdonhang");
+
 
 //bổ sung entity nhomnguoidung, nguoidung_nhom, nhom_chucnang
 // 1 người dùng thuộc nhiều nhóm
