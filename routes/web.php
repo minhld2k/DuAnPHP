@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
-Route::get('/sum/{n}', function ($n) {
-    echo "tong la: " . ($n + 1)*n/2;
-});
+// Route::get('/sum/{n}', function ($n) {
+//     echo "tong la: " . ($n + 1)*n/2;
+// });
 
 Route::get('/sum/{a}/{b}', function ($a,$b) {
     echo "canh huyen: " . sqrt($a*$a + $b*$b);
@@ -254,8 +254,98 @@ Route::get('/viewdonhang',function(){
     );
 })->name("viewdonhang");
 
+// viết chức năng quản lý thư viện
+// Danh sách sách
+// Danh sách phiếu thuê sách
+// chi tiết phiếu thuê sách
+// lập báo cóa như sau:
+// --Báo cáo theo ngày gồm các cột dữ liệu
+// -----Ngày thuê,số lượng phiếu, số lượng sách
+// --Báo cáo theo tháng
+// -----Tháng thuê, số lượng phiếu, số lượng sách
+// --Báo cáo sách
+// -----Tháng thuê, tên sách,số lượng được thuê
+// -----Sắp xếp theo số lượng được thuê giảm dần
 
-//bổ sung entity nhomnguoidung, nguoidung_nhom, nhom_chucnang
-// 1 người dùng thuộc nhiều nhóm
-// 1 nhóm có nhiều chức năng
-// kiểm tra quyền : gồm quyền ở bảng chucnang_users và nhom_chucnang
+Route::get('/sach/list',function(){
+    
+    $sachs = DB::table("sachs")->get();
+    return view("viewsach",
+        compact([
+            "sachs" 
+        ])
+    );
+})->name("sachs.list");
+
+Route::get('/phieuthue/list',function(){
+    
+    $phieuthues = DB::table("phieuthues")->get();
+    return view("viewphieuthue",
+        compact([
+            "phieuthues" 
+        ])
+    );
+})->name("phieuthues.list");
+
+Route::get('/phieuthuchitiet/list',function(){
+    $sachs = DB::table("sachs")
+    ->pluck("tensach","id");
+
+    $phieuthues = DB::table("phieuthues")
+    ->pluck("tenphieu","id");
+    
+    $chitietphieuthues = DB::table("chitietphieuthues")->get();
+    return view("viewchitietphieuthue",
+        compact([
+            "chitietphieuthues" 
+            ,"sachs"
+            ,"phieuthues"
+        ])
+    );
+})->name("chitietphieuthues.list");
+
+Route::get('/thongke/ngay',function(){
+    $thongkengay = DB::select(
+            'SELECT
+                pt.ngaythue
+                ,count(distinct pt.id) as soluongphieu
+                ,count(ptct.sachid) as soluongsach
+            FROM phieuthues pt 
+                LEFT JOIN chitietphieuthues ptct ON pt.id = ptct.phieuthueid
+            GROUP BY pt.ngaythue'
+        );
+    return view("thongketheongay",["thongkengay"=>$thongkengay]);
+})->name("thongke.ngay");
+
+Route::get('/thongke/thang',function(){
+    $thongkethang = DB::select(
+            'SELECT
+                EXTRACT(month from pt.ngaythue) as thangthue
+                ,count(distinct pt.id) as soluongphieu
+                ,count(ptct.sachid) as soluongsach
+            FROM phieuthues pt 
+                LEFT JOIN chitietphieuthues ptct ON pt.id = ptct.phieuthueid
+            GROUP BY thangthue'
+        );
+    return view("thongketheothang",["thongkethang"=>$thongkethang]);
+})->name("thongke.thang");
+
+Route::get('/thongke/sach',function(){
+    if (isset($_GET['thangthue'])) {
+        $thangthue = $_GET['thangthue'];
+    }else{
+        $thangthue = date("m");
+    }
+    $thongkesach = DB::select(
+            'SELECT
+                s.tensach
+                ,count(ptct.sachid) as soluongthue
+            FROM sachs s 
+                LEFT JOIN chitietphieuthues ptct ON s.id = ptct.sachid
+                LEFT JOIN phieuthues pt on pt.id = ptct.phieuthueid
+            WHERE EXTRACT(month from pt.ngaythue) = ?
+            GROUP BY s.tensach 
+            ORDER BY soluongthue desc',[$thangthue]
+        );
+    return view("thongketheosach",["thongkesach"=>$thongkesach,"thangthue"=>$thangthue]);
+})->name("thongke.sach");
