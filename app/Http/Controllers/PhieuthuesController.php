@@ -82,4 +82,19 @@ class PhieuthuesController extends Controller
     {
         //
     }
+
+    public function themOrUpdate(Request $request){
+        if (!isset($request->id)) {
+            $phieuthue = new phieuthues();
+            $phieuthue->id = rand(0,9999999999999);
+            $phieuthue->tenphieu = $request->tenphieu;
+            $phieuthue->ngaythue = implode("-",array_reverse(explode("-",$request->ngaythue)));
+        }else{
+            $phieuthue = phieuthues :: find($request->id);
+            $phieuthue->tenphieu = $request->tenphieu;
+            $phieuthue->ngaythue = implode("-",array_reverse(explode("-",$request->ngaythue)));
+        }
+        $phieuthue->save();
+        return redirect()->route('phieuthues.list');
+    }
 }

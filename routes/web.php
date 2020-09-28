@@ -1,5 +1,7 @@
 <?php
 
+use App\phieuthues;
+use App\sachs;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -349,3 +351,25 @@ Route::get('/thongke/sach',function(){
         );
     return view("thongketheosach",["thongkesach"=>$thongkesach,"thangthue"=>$thangthue]);
 })->name("thongke.sach");
+
+Route::post('/sach/save','SachsController@themOrUpdate')->name('sach.save');
+
+Route::get('/sach/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $sach = new sachs();
+    }else{
+        $sach = DB::table('sachs')->find($id);
+    }
+    return view('editsach',['sach'=>$sach]);
+})->name('sach.show');
+
+Route::post('/phieuthue/save','PhieuthuesController@themOrUpdate')->name('phieuthue.save');
+
+Route::get('/phieuthue/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $phieuthue = new phieuthues();
+    }else{
+        $phieuthue = DB::table('phieuthues')->find($id);
+    }
+    return view('editphieuthue',['phieuthue'=>$phieuthue]);
+})->name('phieuthue.show');

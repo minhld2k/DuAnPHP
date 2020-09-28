@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\sachs;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SachsController extends Controller
 {
@@ -81,5 +82,18 @@ class SachsController extends Controller
     public function destroy(sachs $sachs)
     {
         //
+    }
+
+    public function themOrUpdate(Request $request){
+        if (!isset($request->id)) {
+            $sach = new sachs();
+            $sach->id = rand(0,9999999999999);
+            $sach->tensach = $request->tensach;
+        }else{
+            $sach = sachs :: find($request->id);
+            $sach->tensach = $request->tensach;
+        }
+        $sach->save();
+        return redirect()->route('sachs.list');
     }
 }
