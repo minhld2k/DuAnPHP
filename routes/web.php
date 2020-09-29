@@ -1,9 +1,14 @@
 <?php
 
+use App\mayquetthes;
+use App\nhanviens;
 use App\phieuthues;
+use App\phongbans;
 use App\sachs;
+use App\vaoras;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,30 +27,30 @@ use Illuminate\Support\Facades\Auth;
 //     echo "tong la: " . ($n + 1)*n/2;
 // });
 
-Route::get('/sum/{a}/{b}', function ($a,$b) {
-    echo "canh huyen: " . sqrt($a*$a + $b*$b);
-});
+// Route::get('/sum/{a}/{b}', function ($a,$b) {
+//     echo "canh huyen: " . sqrt($a*$a + $b*$b);
+// });
 
-Route::get('/sum/{a}/{b}/{c}', function ($a,$b,$c) {
-    $delta = $b*$b - 4*$a*$c;
-    echo "pt bac 2: x1= " . (-$b + sqrt($delta))/2 . "x2= ". (-$b - sqrt($delta))/2;
-});
+// Route::get('/sum/{a}/{b}/{c}', function ($a,$b,$c) {
+//     $delta = $b*$b - 4*$a*$c;
+//     echo "pt bac 2: x1= " . (-$b + sqrt($delta))/2 . "x2= ". (-$b - sqrt($delta))/2;
+// });
 
-Route::get('/update/{id}/{ten}', function ($id,$ten) {
-    echo "thuc hiencap nhat";
-})->where(['id'=>'[0-9]+','ten'=>'[a-zA-Z0-9]+']); //regular expression
+// Route::get('/update/{id}/{ten}', function ($id,$ten) {
+//     echo "thuc hiencap nhat";
+// })->where(['id'=>'[0-9]+','ten'=>'[a-zA-Z0-9]+']); //regular expression
 
-Route::get('/update/{id}/{ten}', function ($id,$ten) {
-    echo route("capnhatnguoidung");
-})->where(['id'=>'[0-9]+','ten'=>'[a-zA-Z0-9]+'])->name("hienthicapnhat");
+// Route::get('/update/{id}/{ten}', function ($id,$ten) {
+//     echo route("capnhatnguoidung");
+// })->where(['id'=>'[0-9]+','ten'=>'[a-zA-Z0-9]+'])->name("hienthicapnhat");
 
-Route::post('/update', function () {
-    echo "thuc hiencap nhat";
-})->name("capnhatnguoidung");
+// Route::post('/update', function () {
+//     echo "thuc hiencap nhat";
+// })->name("capnhatnguoidung");
 
-Route::get('/blabla',function(){
-    echo route("hienthicapnhat",['id'=>1,'ten'=>'abcs']);
-});
+// Route::get('/blabla',function(){
+//     echo route("hienthicapnhat",['id'=>1,'ten'=>'abcs']);
+// });
 
 Route::get('/view',function(){
     $db = new PDO("pgsql:dbname=demo;host=localhost","postgres","12345");
@@ -373,3 +378,109 @@ Route::get('/phieuthue/addOrEdit/{id}',function(Request $request,$id){
     }
     return view('editphieuthue',['phieuthue'=>$phieuthue]);
 })->name('phieuthue.show');
+
+// Quản  lý vào ra cho 1 công ty
+/**
+ *  tạo model nhanvien,phongban, mayquetthe, vaora băng migration
+ *  Viết các chức năng sau
+ *      -QUản lý nhân viên
+ *      - QUản lý phòng ban
+ *      - Quản lý máy quét thẻ
+ *      - thêm mới vào /ra
+ *      - Hiển thị danh sách vào ra cho 1 nhân viên theo ngày
+ *      - HIển thị danh sách vào ra theo tháng (các ngày trong tháng) cho  1 nhân viên theo mẫu
+ *          Ngày------giờ vào ----- giờ ra ---- số lần vào/ra
+ */
+    //Quản lý nhân viên
+ Route::get('/nhanvien/list',function(){
+    $nhanviens = DB::table('nhanviens')->get();
+    $phongbans = DB::table('phongbans')->pluck('ten','id');
+    return view('viewnhanvien',['nhanviens'=>$nhanviens,'phongbans'=>$phongbans]);
+ })->name('nhanvien.list');
+
+ Route::get('/nhanvien/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $nhanviens = new nhanviens();
+    }else{
+        $nhanviens = DB::table('nhanviens')->find($id);
+    }
+    $phongbans = DB::table('phongbans')->pluck('ten','id');
+    return view('editnhanvien',['nhanviens'=>$nhanviens,'phongbans'=>$phongbans]);
+})->name('nhanvien.show');
+
+Route::post('/nhanvien/save','NhanviensController@themOrUpdate')->name('nhanvien.save');
+
+    //Quản lý phòng ban
+Route::get('/phongban/list',function(){
+    $phongbans = DB::table('phongbans')->get();
+    return view('viewphongban',['phongbans'=>$phongbans]);
+ })->name('phongban.list');
+
+ Route::get('/phongban/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $phongbans = new phongbans();
+    }else{
+        $phongbans = DB::table('phongbans')->find($id);
+    }
+    
+    return view('editphongban',['phongbans'=>$phongbans]);
+})->name('phongban.show');
+
+Route::post('/phongban/save','PhongbansController@themOrUpdate')->name('phongban.save');
+
+    //Quản lý máy quẹt thẻ
+Route::get('/mayquetthe/list',function(){
+    $mayquetthes = DB::table('mayquetthes')->get();
+    return view('viewmayquetthe',['mayquetthes'=>$mayquetthes]);
+})->name('mayquetthe.list');
+
+Route::get('/mayquetthe/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $mayquetthes = new mayquetthes();
+    }else{
+        $mayquetthes = DB::table('mayquetthes')->find($id);
+    }
+    
+    return view('editmayquetthe',['mayquetthes'=>$mayquetthes]);
+})->name('mayquetthe.show');
+
+Route::post('/mayquetthe/save','MayquetthesController@themOrUpdate')->name('mayquetthe.save');
+
+    //Thêm mới vào ra
+Route::get('/vaora/add',function(Request $request){
+    return view('addvaora');
+})->name('vaora.show');
+    
+Route::post('/vaora/save','VaorasController@themOrUpdate')->name('vaora.save');
+
+    //Hiển thị danh sách ra vào cho 1 nhân viên theo ngày
+Route::get('/nhanvien/ngay',function(Request $request){
+    
+    $ngay = isset($request->ngay)?$ngay = $request->ngay:date('d');
+    $thang = isset($request->thang)?$thang = $request->thang:date('m');
+    $nhanvienid = isset($request->nhanvienid)?$request->nhanvienid:-1;
+    $nhanviens = DB::table('nhanviens')->pluck('ten','id');
+    $vaoras = DB::select('SELECT * FROM vaoras where EXTRACT(day from thoigian) = ? and nhanvienid = ? and EXTRACT(month from thoigian) = ?',[$ngay,$nhanvienid,$thang]);
+    return view('thongkevaoratheongay',['vaoras'=>$vaoras,'nhanviens'=>$nhanviens,'ngay'=>$ngay,'nhanvienid'=>$nhanvienid,'thang'=>$thang]);
+})->name('nhanvien.ngay');
+    //HIển thị danh sách vào ra theo tháng
+
+Route::get('/nhanvien/thang',function(Request $request){
+
+    $thang = isset($request->thang)?$thang = $request->thang:date('m');
+    $nam = isset($request->nam)?$nam = $request->nam:date('Y');
+    $nhanvienid = isset($request->nhanvienid)?$request->nhanvienid:-1;
+    $nhanviens = DB::table('nhanviens')->pluck('ten','id');
+    $vaoras = DB::select('select 
+	                        EXTRACT(day from thoigian) as ngay,
+	                        min(thoigian) as vao,
+	                        max(thoigian) as ra,
+	                        count(nhanvienid) as soluong
+                            from vaoras
+                            where nhanvienid = ? and EXTRACT(month from thoigian) = ? and EXTRACT(year from thoigian) = ?
+                            group by ngay',[$nhanvienid,$thang,$nam]);
+    return view('thongkevaoratheothang',['vaoras'=>$vaoras,'nhanviens'=>$nhanviens,'thang'=>$thang,'nhanvienid'=>$nhanvienid,'nam'=>$nam]);
+})->name('nhanvien.thang');
+
+
+

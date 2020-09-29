@@ -16,6 +16,7 @@ class CreatePhongbansTable extends Migration
         Schema::create('phongbans', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('ten');
         });
     }
 
