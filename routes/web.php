@@ -1,10 +1,15 @@
 <?php
 
+use App\chungloais;
 use App\mayquetthes;
+use App\nguoidungs;
+use App\nhacungcaps;
 use App\nhanviens;
+use App\nhatkys;
 use App\phieuthues;
 use App\phongbans;
 use App\sachs;
+use App\taisans;
 use App\vaoras;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -481,6 +486,110 @@ Route::get('/nhanvien/thang',function(Request $request){
                             group by ngay',[$nhanvienid,$thang,$nam]);
     return view('thongkevaoratheothang',['vaoras'=>$vaoras,'nhanviens'=>$nhanviens,'thang'=>$thang,'nhanvienid'=>$nhanvienid,'nam'=>$nam]);
 })->name('nhanvien.thang');
+
+// viết chương trình quản lý tài sản
+    // - Quản lý người dùng (tên)
+    // - Quản lý nhà cung cấp
+    // - Quản lý chủng loại
+    // - Quản lý tài sản
+    // - Di chuyển tài sản và ghi nhật ký di chuyển
+    // - Xem danh sách di chuyển tài sản
+
+// Quản lý người dùng
+Route::get('/nguoidung/list',function(){
+    $nguoidungs = DB::table('nguoidungs')->get();
+    return view('viewnguoidung',['nguoidungs'=>$nguoidungs]);
+})->name('nguoidung.list');
+
+Route::get('/nguoidung/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $nguoidungs = new nguoidungs();
+    }else{
+        $nguoidungs = DB::table('nguoidungs')->find($id);
+    }
+    
+    return view('editnguoidung',['nguoidungs'=>$nguoidungs]);
+})->name('nguoidung.show');
+
+Route::post('/nguoidung/save','NguoidungsController@themOrUpdate')->name('nguoidung.save');
+
+// Quản lý nhà cung cấp
+Route::get('/nhacungcap/list',function(){
+    $nhacungcaps = DB::table('nhacungcaps')->get();
+    return view('viewnhacungcap',['nhacungcaps'=>$nhacungcaps]);
+})->name('nhacungcap.list');
+
+Route::get('/nhacungcap/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $nhacungcaps = new nhacungcaps();
+    }else{
+        $nhacungcaps = DB::table('nhacungcaps')->find($id);
+    }
+    
+    return view('editnhacungcap',['nhacungcaps'=>$nhacungcaps]);
+})->name('nhacungcap.show');
+
+Route::post('/nhacungcap/save','NhacungcapsController@themOrUpdate')->name('nhacungcap.save');
+
+// Quản lý chủng loại
+Route::get('/chungloai/list',function(){
+    $chungloais = DB::table('chungloais')->get();
+    return view('viewchungloai',['chungloais'=>$chungloais]);
+})->name('chungloai.list');
+
+Route::get('/chungloai/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $chungloais = new chungloais();
+    }else{
+        $chungloais = DB::table('chungloais')->find($id);
+    }
+    
+    return view('editchungloai',['chungloais'=>$chungloais]);
+})->name('chungloai.show');
+
+Route::post('/chungloai/save','ChungloaisController@themOrUpdate')->name('chungloai.save');
+
+// Quản lý Tài sản
+Route::get('/taisan/list',function(){
+    $taisans = DB::table('taisans')->get();
+    $nguoidungs = DB::table('nguoidungs')->pluck('ten','id');
+    $chungloais = DB::table('chungloais')->pluck('ten','id');
+    $nhacungcaps = DB::table('nhacungcaps')->pluck('ten','id');
+    return view('viewtaisan',['taisans'=>$taisans,'nguoidungs'=>$nguoidungs,'chungloais'=>$chungloais,'nhacungcaps'=>$nhacungcaps]);
+})->name('taisan.list');
+
+Route::get('/taisan/addOrEdit/{id}',function(Request $request,$id){
+    if($id < 0){
+        $taisans = new taisans();
+    }else{
+        $taisans = DB::table('taisans')->find($id);
+    }
+    $nguoidungs = DB::table('nguoidungs')->pluck('ten','id');
+    $chungloais = DB::table('chungloais')->pluck('ten','id');
+    $nhacungcaps = DB::table('nhacungcaps')->pluck('ten','id');
+    return view('edittaisan',['taisans'=>$taisans,'nguoidungs'=>$nguoidungs,'chungloais'=>$chungloais,'nhacungcaps'=>$nhacungcaps]);
+})->name('taisan.show');
+
+Route::post('/taisan/save','TaisansController@themOrUpdate')->name('taisan.save');
+
+// DI chuyển tài sản và danh sách
+Route::get('/nhatky/list',function(Request $request){
+    $taisans = DB::table('taisans')->pluck('ten','id');
+    $taisanid = $request->taisanid ?? '1';
+    $nguoidungs = DB::table('nguoidungs')->pluck('ten','id');
+    $nhatkys = DB::select('select * from nhatkys where taisanid = ? order by ngaychuyen',[$taisanid]);
+    return view('viewnhatky',['taisans'=>$taisans,'nguoidungs'=>$nguoidungs,'nhatkys'=>$nhatkys,'taisanid'=>$taisanid]);
+})->name('nhatky.list');
+
+Route::get('/nhatky/add',function(Request $request){
+    $taisans = DB::table('taisans')->pluck('ten','id');
+    $nguoidungs = DB::table('nguoidungs')->pluck('ten','id');
+    return view('editnhatky',['taisans'=>$taisans,'nguoidungs'=>$nguoidungs]);
+})->name('nhatky.show');
+
+Route::post('/nhatky/save','NhatkysController@themOrUpdate')->name('nhatky.save');
+
+
 
 
 
